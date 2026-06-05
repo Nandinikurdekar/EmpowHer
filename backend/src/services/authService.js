@@ -1,4 +1,6 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { env } = require('../config/env');
 const User = require('../models/User');
 
 const SALT_ROUNDS = 12;
@@ -52,6 +54,20 @@ const sanitizeUser = (user) => {
   return safeUser;
 };
 
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role
+    },
+    env.jwtSecret,
+    {
+      expiresIn: '1d'
+    }
+  );
+};
+
 const registerUser = async ({ fullName, email, password, phone = null }) => {
   validateRegistrationInput({ fullName, email, password });
 
@@ -98,10 +114,27 @@ const loginUser = async ({ email, password }) => {
     throw createError('Invalid email or password', 401);
   }
 
-  return sanitizeUser(user);
+  const safeUser = sanitizeUser(user);
+  const token = generateToken(safeUser);
+
+  return {
+    user: safeUser,
+    token
+  };
+};
+
+const getCurrentUser = async (userId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw createError('Authenticated user was not found', 404);
+  }
+
+  return user;
 };
 
 module.exports = {
+  getCurrentUser,
   loginUser,
   registerUser
 };

@@ -18,11 +18,27 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const user = await authService.loginUser(req.body);
+    const { user, token } = await authService.loginUser(req.body);
 
     res.status(200).json({
       status: 'success',
       message: 'Login successful',
+      data: {
+        user,
+        token
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getMe = async (req, res, next) => {
+  try {
+    const user = await authService.getCurrentUser(req.user.id);
+
+    res.status(200).json({
+      status: 'success',
       data: {
         user
       }
@@ -33,6 +49,7 @@ const login = async (req, res, next) => {
 };
 
 module.exports = {
+  getMe,
   login,
   register
 };
