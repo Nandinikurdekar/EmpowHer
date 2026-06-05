@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const authRoutes = require('./routes/authRoutes');
 const businessRoutes = require('./routes/businessRoutes');
 const healthRoutes = require('./routes/healthRoutes');
+const postRoutes = require('./routes/postRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/businesses', businessRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/posts', postRoutes);
 app.use('/api/profiles', profileRoutes);
 
 app.use(notFound);
