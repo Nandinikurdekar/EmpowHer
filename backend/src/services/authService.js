@@ -29,6 +29,29 @@ const validateRegistrationInput = ({ fullName, email, password }) => {
   }
 };
 
+const validateLoginInput = ({ email, password }) => {
+  if (!email || !password) {
+    throw createError('Email and password are required', 400);
+  }
+
+  if (typeof email !== 'string' || !/^\S+@\S+\.\S+$/.test(email.trim())) {
+    throw createError('A valid email address is required', 400);
+  }
+
+  if (typeof password !== 'string') {
+    throw createError('Password is required', 400);
+  }
+};
+
+const sanitizeUser = (user) => {
+  if (!user) {
+    return null;
+  }
+
+  const { password_hash, ...safeUser } = user;
+  return safeUser;
+};
+
 const registerUser = async ({ fullName, email, password, phone = null }) => {
   validateRegistrationInput({ fullName, email, password });
 
@@ -59,6 +82,26 @@ const registerUser = async ({ fullName, email, password, phone = null }) => {
   }
 };
 
+const loginUser = async ({ email, password }) => {
+  validateLoginInput({ email, password });
+
+  const normalizedEmail = normalizeEmail(email);
+  const user = await User.findByEmail(normalizedEmail);
+
+  if (!user) {
+    throw createError('Invalid email or password', 401);
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+  if (!isPasswordValid) {
+    throw createError('Invalid email or password', 401);
+  }
+
+  return sanitizeUser(user);
+};
+
 module.exports = {
+  loginUser,
   registerUser
 };
